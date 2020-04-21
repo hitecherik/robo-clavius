@@ -5,15 +5,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/hitecherik/robo-clavius/pkg/dateutil"
 )
 
 const endpoint string = "https://www.gov.uk/bank-holidays.json"
 const region string = "england-and-wales"
-const layout string = "2006-01-02"
 
 type UkBankHoliday struct {
 	response []byte
-	days     []time.Time
+	dates    []time.Time
 }
 
 func fromJson(bytes []byte) (*UkBankHoliday, error) {
@@ -25,20 +26,20 @@ func fromJson(bytes []byte) (*UkBankHoliday, error) {
 
 	division := data[region].(map[string]interface{})
 	events := division["events"].([]interface{})
-	days := make([]time.Time, len(events))
+	dates := make([]time.Time, len(events))
 
-	for _, day := range events {
-		holiday := day.(map[string]interface{})
-		time, err := time.Parse(layout, holiday["date"].(string))
+	for _, date := range events {
+		holiday := date.(map[string]interface{})
+		time, err := time.ParseInLocation(dateutil.ISO8601, holiday["date"].(string), time.Now().Location())
 
 		if err != nil {
 			return nil, err
 		}
 
-		days = append(days, time)
+		dates = append(dates, time)
 	}
 
-	return &UkBankHoliday{bytes, days}, nil
+	return &UkBankHoliday{bytes, dates}, nil
 }
 
 func Fetch() (*UkBankHoliday, error) {
@@ -73,11 +74,11 @@ func (u *UkBankHoliday) Save(path string) error {
 	return ioutil.WriteFile(path, u.response, 0644)
 }
 
-func (u *UkBankHoliday) Check(day time.Time) bool {
-	day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, day.Location())
+func (u *UkBankHoliday) Check(date *time.Time) bool {
+	truncated := dateutil.TruncateToMidnight(date)
 
-	for _, holiday := range u.days {
-		if day.Equal(holiday) {
+	for _, holiday := range u.dates {
+		if truncated.Equal(holiday) {
 			return true
 		}
 	}
