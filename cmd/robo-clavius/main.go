@@ -72,8 +72,6 @@ func main() {
 		}
 
 		working = working.Add(-dateutil.Day)
-		fmt.Println(working)
-		fmt.Println(today)
 
 		if today.Equal(working) {
 			if err := sender.Send(&payload); err != nil {
