@@ -10,18 +10,13 @@ import (
 	"github.com/hitecherik/robo-clavius/pkg/ukbankholiday"
 )
 
-const (
-	event = "withdraw_savings"
-	key   = "[redacted]"
-)
-
 func weekend(t *time.Time) bool {
 	weekday := t.Weekday()
 	return weekday == time.Saturday || weekday == time.Sunday
 }
 
 func main() {
-	opts := options.GetOptions()
+	opts, dryrun := options.GetOptions()
 
 	// TODO: fetch cleverly
 	checker, err := ukbankholiday.Fetch()
@@ -30,17 +25,17 @@ func main() {
 		panic(err)
 	}
 
-	sender := ifttt.New(event, key)
+	sender := ifttt.New(opts.Key)
 	today := time.Now()
 
 	today = dateutil.TruncateToMidnight(&today)
 
-	for _, schedule := range opts.Schedules {
-		if today.After(schedule.Date) || today.Equal(schedule.Date) {
+	for _, job := range opts.Jobs {
+		if today.After(job.Date) || today.Equal(job.Date) {
 			continue
 		}
 
-		working := schedule.Date.Add(-dateutil.Day)
+		working := job.Date.Add(-dateutil.Day)
 
 		for weekend(&working) && !checker.Check(&working) {
 			working = working.Add(-dateutil.Day)
@@ -49,12 +44,13 @@ func main() {
 		working = working.Add(-dateutil.Day)
 
 		if today.Equal(working) {
-			if opts.Dryrun {
-				fmt.Printf("Would have triggered event %v with amount %v for date %v\n", event, schedule.Amount, schedule.Date)
+			if dryrun {
+				fmt.Printf("Would have triggered %v\n", job.String())
 				continue
 			}
 
-			if err := sender.Send(&ifttt.Payload{Value1: schedule.Amount}); err != nil {
+			payload := ifttt.Payload{Value1: fmt.Sprint(job.Amount)}
+			if err := sender.Send(job.Event, &payload); err != nil {
 				panic(err)
 			}
 		}

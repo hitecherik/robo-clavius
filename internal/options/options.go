@@ -12,24 +12,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Schedule struct {
+type Job struct {
 	Date   time.Time
-	Amount string
+	Amount float64
+	Event  string
 }
 
 type Options struct {
-	Schedules []Schedule
-	Dryrun    bool
+	Key  string
+	Jobs []Job
 }
 
 var config Options
-var date string
-var amount string
 var dryrun bool
 
 func init() {
-	flag.StringVar(&date, "date", "", "date (yyyy-mm-dd) the amount needs to be out of the pot on")
-	flag.StringVar(&amount, "amount", "", "the amount to transfer on the date")
 	flag.BoolVar(&dryrun, "dryrun", false, "print what you would have done ratehr than doing it")
 	flag.Var(&config, "config", "the path to the yaml config file")
 }
@@ -43,33 +40,26 @@ func exit(err error) {
 	os.Exit(1)
 }
 
-func GetOptions() Options {
+func GetOptions() (Options, bool) {
 	flag.Parse()
 
-	if date == "" && amount == "" {
-		config.Dryrun = dryrun
-		return config
+	if config.Key == "" {
+		exit(errors.New("you must specify a key in your config file"))
 	}
 
-	if date != "" || amount != "" {
-		exit(errors.New("either date or amount not provided"))
+	if len(config.Jobs) == 0 {
+		exit(errors.New("you must schedule some jobs in your config file"))
 	}
 
-	date, err := time.ParseInLocation(dateutil.ISO8601, date, time.Local)
-
-	if err != nil {
-		exit(err)
-	}
-
-	return Options{[]Schedule{{date, amount}}, dryrun}
+	return config, dryrun
 }
 
 func (o *Options) String() string {
-	return fmt.Sprint(o.Schedules)
+	return fmt.Sprintf("Options { %v, %v }", o.Key, o.Jobs)
 }
 
 func (o *Options) Set(value string) error {
-	if len(o.Schedules) > 0 {
+	if o.Key != "" {
 		return errors.New("config flag already set")
 	}
 
@@ -79,22 +69,32 @@ func (o *Options) Set(value string) error {
 		return err
 	}
 
-	var records []interface{}
+	var file map[string]interface{}
 
-	if err := yaml.Unmarshal(body, &records); err != nil {
+	if err := yaml.Unmarshal(body, &file); err != nil {
 		return err
 	}
 
-	o.Schedules = make([]Schedule, len(records))
+	o.Key = file["key"].(string)
 
-	for _, record := range records {
-		record := record.(map[string]interface{})
+	jobs := file["jobs"].([]interface{})
+	o.Jobs = make([]Job, len(jobs))
 
-		d := record["date"].(time.Time)
+	for _, job := range jobs {
+		job := job.(map[string]interface{})
+
+		d := job["date"].(time.Time)
 		d = dateutil.TruncateToMidnight(&d)
-		a := fmt.Sprint(record["amount"].(float64))
-		o.Schedules = append(o.Schedules, Schedule{d, a})
+		o.Jobs = append(o.Jobs, Job{
+			Date:   d,
+			Amount: job["amount"].(float64),
+			Event:  job["event"].(string),
+		})
 	}
 
 	return nil
+}
+
+func (j *Job) String() string {
+	return fmt.Sprintf("Job { %v, %v, %v }", j.Date.Format(dateutil.ISO8601), j.Amount, j.Event)
 }

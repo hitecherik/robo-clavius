@@ -17,19 +17,19 @@ type Ifttt struct {
 	endpoint string
 }
 
-func New(event string, key string) *Ifttt {
-	endpoint := fmt.Sprintf("https://maker.ifttt.com/trigger/%v/with/key/%v", event, key)
+func New(key string) *Ifttt {
+	endpoint := fmt.Sprintf("https://maker.ifttt.com/trigger/%%v/with/key/%v", key)
 	return &Ifttt{endpoint}
 }
 
-func (i *Ifttt) Send(payload *Payload) error {
+func (i *Ifttt) Send(event string, payload *Payload) error {
 	data, err := json.Marshal(payload)
 
 	if err != nil {
 		return err
 	}
 
-	resp, err := http.Post(i.endpoint, "application/json", bytes.NewReader(data))
+	resp, err := http.Post(fmt.Sprintf(i.endpoint, event), "application/json", bytes.NewReader(data))
 
 	if err != nil {
 		return err
