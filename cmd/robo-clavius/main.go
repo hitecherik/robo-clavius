@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/hitecherik/robo-clavius/internal/options"
@@ -48,6 +49,11 @@ func main() {
 		working = working.Add(-dateutil.Day)
 
 		if today.Equal(working) {
+			if opts.Dryrun {
+				fmt.Printf("Would have triggered event %v with amount %v for date %v\n", event, schedule.Amount, schedule.Date)
+				continue
+			}
+
 			if err := sender.Send(&ifttt.Payload{Value1: schedule.Amount}); err != nil {
 				panic(err)
 			}

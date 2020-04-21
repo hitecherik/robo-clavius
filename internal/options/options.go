@@ -19,15 +19,18 @@ type Schedule struct {
 
 type Options struct {
 	Schedules []Schedule
+	Dryrun    bool
 }
 
 var config Options
 var date string
 var amount string
+var dryrun bool
 
 func init() {
 	flag.StringVar(&date, "date", "", "date (yyyy-mm-dd) the amount needs to be out of the pot on")
 	flag.StringVar(&amount, "amount", "", "the amount to transfer on the date")
+	flag.BoolVar(&dryrun, "dryrun", false, "print what you would have done ratehr than doing it")
 	flag.Var(&config, "config", "the path to the yaml config file")
 }
 
@@ -44,6 +47,7 @@ func GetOptions() Options {
 	flag.Parse()
 
 	if date == "" && amount == "" {
+		config.Dryrun = dryrun
 		return config
 	}
 
@@ -57,7 +61,7 @@ func GetOptions() Options {
 		exit(err)
 	}
 
-	return Options{[]Schedule{{date, amount}}}
+	return Options{[]Schedule{{date, amount}}, dryrun}
 }
 
 func (o *Options) String() string {
@@ -75,7 +79,7 @@ func (o *Options) Set(value string) error {
 		return err
 	}
 
-	records := []interface{}{}
+	var records []interface{}
 
 	if err := yaml.Unmarshal(body, &records); err != nil {
 		return err
