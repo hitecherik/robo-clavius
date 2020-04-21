@@ -1,53 +1,26 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"time"
 
+	"github.com/hitecherik/robo-clavius/internal/options"
 	"github.com/hitecherik/robo-clavius/pkg/dateutil"
 	"github.com/hitecherik/robo-clavius/pkg/ifttt"
 	"github.com/hitecherik/robo-clavius/pkg/ukbankholiday"
 )
 
 const (
-	event  = "withdraw_savings"
-	key    = "[redacted]"
-	amount = "0.01"
+	event = "withdraw_savings"
+	key   = "[redacted]"
 )
-
-type targets struct {
-	dates []time.Time
-}
-
-func (t *targets) String() string {
-	return fmt.Sprint(t.dates)
-}
-
-func (t *targets) Set(value string) error {
-	date, err := time.ParseInLocation(dateutil.ISO8601, value, time.Local)
-
-	if err != nil {
-		return err
-	}
-
-	t.dates = append(t.dates, date)
-	return nil
-}
 
 func weekend(t *time.Time) bool {
 	weekday := t.Weekday()
 	return weekday == time.Saturday || weekday == time.Sunday
 }
 
-var dates targets
-
-func init() {
-	flag.Var(&dates, "target", "date the money needs to be out of the pot on")
-}
-
 func main() {
-	flag.Parse()
+	opts := options.GetOptions()
 
 	// TODO: fetch cleverly
 	checker, err := ukbankholiday.Fetch()
@@ -57,17 +30,16 @@ func main() {
 	}
 
 	sender := ifttt.New(event, key)
-	payload := ifttt.Payload{Value1: amount}
 	today := time.Now()
 
 	today = dateutil.TruncateToMidnight(&today)
 
-	for _, date := range dates.dates {
-		if today.After(date) || today.Equal(date) {
+	for _, schedule := range opts.Schedules {
+		if today.After(schedule.Date) || today.Equal(schedule.Date) {
 			continue
 		}
 
-		working := date.Add(-dateutil.Day)
+		working := schedule.Date.Add(-dateutil.Day)
 
 		for weekend(&working) && !checker.Check(&working) {
 			working = working.Add(-dateutil.Day)
@@ -76,7 +48,7 @@ func main() {
 		working = working.Add(-dateutil.Day)
 
 		if today.Equal(working) {
-			if err := sender.Send(&payload); err != nil {
+			if err := sender.Send(&ifttt.Payload{Value1: schedule.Amount}); err != nil {
 				panic(err)
 			}
 		}
