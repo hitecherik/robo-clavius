@@ -10,9 +10,11 @@ import (
 	"github.com/hitecherik/robo-clavius/pkg/ukbankholiday"
 )
 
-const event string = "withdraw_savings"
-const key string = "[redacted]"
-const amount string = "0.01"
+const (
+	event  = "withdraw_savings"
+	key    = "[redacted]"
+	amount = "0.01"
+)
 
 type targets struct {
 	dates []time.Time

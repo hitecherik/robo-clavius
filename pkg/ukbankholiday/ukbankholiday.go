@@ -9,8 +9,10 @@ import (
 	"github.com/hitecherik/robo-clavius/pkg/dateutil"
 )
 
-const endpoint string = "https://www.gov.uk/bank-holidays.json"
-const region string = "england-and-wales"
+const (
+	endpoint = "https://www.gov.uk/bank-holidays.json"
+	region   = "england-and-wales"
+)
 
 type UkBankHoliday struct {
 	response []byte
