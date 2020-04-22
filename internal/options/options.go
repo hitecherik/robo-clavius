@@ -27,7 +27,7 @@ var config Options
 var dryrun bool
 
 func init() {
-	flag.BoolVar(&dryrun, "dryrun", false, "print what you would have done ratehr than doing it")
+	flag.BoolVar(&dryrun, "dryrun", false, "print what you would have done rather than doing it")
 	flag.Var(&config, "config", "the path to the yaml config file")
 }
 
