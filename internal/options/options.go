@@ -13,9 +13,10 @@ import (
 )
 
 type Job struct {
-	Date   time.Time
-	Amount float64
-	Event  string
+	Date    time.Time
+	Amount  float64
+	Event   string
+	Monthly bool
 }
 
 type Options struct {
@@ -85,10 +86,14 @@ func (o *Options) Set(value string) error {
 
 		d := job["date"].(time.Time)
 		d = dateutil.TruncateToMidnight(&d)
+
+		monthly, ok := job["monthly"]
+
 		o.Jobs = append(o.Jobs, Job{
-			Date:   d,
-			Amount: job["amount"].(float64),
-			Event:  job["event"].(string),
+			Date:    d,
+			Amount:  job["amount"].(float64),
+			Event:   job["event"].(string),
+			Monthly: ok && monthly.(bool),
 		})
 	}
 

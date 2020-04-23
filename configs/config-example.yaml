@@ -4,6 +4,7 @@ jobs:
   - date: 2020-04-22
     amount: 87.76
     event: withdraw_savings
+    monthly: true
   - date: 2020-04-23
     amount: 92.98
     event: withdraw_billspot
@@ -13,3 +14,4 @@ jobs:
   - date: 2020-04-27
     amount: 78.14
     event: withdraw_savings
+    monthly: true
