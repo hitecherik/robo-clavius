@@ -7,7 +7,7 @@ Monzo's savings pots are great, but you can't schedule withdrawals very effectiv
 ## Installation
 
 1. Set up a recipe on [IFTTT](https://ifttt.com) that is triggered by a [webhook](https://ifttt.com/maker_webhooks) that moves whatever is in `{{Value1}}` out of your chosen pot. Name your webhook event something like `withdraw_from_pot`, but remember the name for later!
-2. Create a file `config.yaml` (example at [configs/config-example.yaml](configs/config-example.yaml)) and populate with your IFTTT webhook key, along with a configuration for which day you want your money available in your account.
+2. Create a file `config.yaml` (example at [configs/config-example.yaml](configs/config-example.yaml)) and populate it with `robo-clavius` configuration information (transfer dates, amounts, and IFTTT events; your IFTTT key and a cache file)
 3. Build `robo-clavius` my running `go build -o robo-clavius cmd/robo-clavius/main.go`.
 4. Cron `./robo-clavius -config path/to/config.yaml` to run once a day.
 

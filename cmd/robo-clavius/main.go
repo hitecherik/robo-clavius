@@ -2,18 +2,17 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/hitecherik/robo-clavius/internal/cacher"
 	"github.com/hitecherik/robo-clavius/internal/jobfilter"
 	"github.com/hitecherik/robo-clavius/internal/options"
 	"github.com/hitecherik/robo-clavius/pkg/ifttt"
-	"github.com/hitecherik/robo-clavius/pkg/ukbankholiday"
 )
 
 func main() {
 	opts, dryrun := options.GetOptions()
-
-	// TODO: fetch cleverly
-	checker, err := ukbankholiday.Fetch()
+	checker, err := cacher.CacheOrFetch(opts.CacheFile, !dryrun)
 
 	if err != nil {
 		panic(err)
@@ -21,6 +20,7 @@ func main() {
 
 	sender := ifttt.New(opts.Key)
 	jobs := jobfilter.Filter(opts.Jobs, checker)
+	errors := 0
 
 	for _, job := range jobs {
 		if dryrun {
@@ -30,7 +30,9 @@ func main() {
 
 		payload := ifttt.Payload{Value1: fmt.Sprint(job.Amount)}
 		if err := sender.Send(job.Event, &payload); err != nil {
-			panic(err)
+			errors = errors + 1
+			defer os.Exit(errors)
+			os.Stderr.WriteString(fmt.Sprintln(err))
 		}
 	}
 }

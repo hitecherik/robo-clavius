@@ -1,4 +1,5 @@
 key: YOUR_IFTTT_KEY_HERE
+cache_file: path/to/robo-clavius-cache.json
 
 jobs:
   - date: 2020-04-22

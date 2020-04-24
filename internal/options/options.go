@@ -20,8 +20,9 @@ type Job struct {
 }
 
 type Options struct {
-	Key  string `yaml:"key"`
-	Jobs []Job  `yaml:"jobs"`
+	Key       string `yaml:"key"`
+	CacheFile string `yaml:"cache_file,omitempty"`
+	Jobs      []Job  `yaml:"jobs"`
 }
 
 var config Options
@@ -38,7 +39,7 @@ func exit(err error) {
 	}
 
 	flag.Usage()
-	os.Exit(1)
+	os.Exit(-1)
 }
 
 func GetOptions() (Options, bool) {
