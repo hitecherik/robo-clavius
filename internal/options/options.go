@@ -13,15 +13,15 @@ import (
 )
 
 type Job struct {
-	Date    time.Time
-	Amount  float64
-	Event   string
-	Monthly bool
+	Date    time.Time `yaml:"date"`
+	Amount  float64   `yaml:"amount"`
+	Event   string    `yaml:"event"`
+	Monthly bool      `yaml:"monthly,omitempty"`
 }
 
 type Options struct {
-	Key  string
-	Jobs []Job
+	Key  string `yaml:"key"`
+	Jobs []Job  `yaml:"jobs"`
 }
 
 var config Options
@@ -70,31 +70,12 @@ func (o *Options) Set(value string) error {
 		return err
 	}
 
-	var file map[string]interface{}
-
-	if err := yaml.Unmarshal(body, &file); err != nil {
+	if err := yaml.Unmarshal(body, o); err != nil {
 		return err
 	}
 
-	o.Key = file["key"].(string)
-
-	jobs := file["jobs"].([]interface{})
-	o.Jobs = make([]Job, len(jobs))
-
-	for _, job := range jobs {
-		job := job.(map[string]interface{})
-
-		d := job["date"].(time.Time)
-		d = dateutil.TruncateToMidnight(&d)
-
-		monthly, ok := job["monthly"]
-
-		o.Jobs = append(o.Jobs, Job{
-			Date:    d,
-			Amount:  job["amount"].(float64),
-			Event:   job["event"].(string),
-			Monthly: ok && monthly.(bool),
-		})
+	for i, job := range o.Jobs {
+		o.Jobs[i].Date = dateutil.TruncateToMidnight(&job.Date)
 	}
 
 	return nil
