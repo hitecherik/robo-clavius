@@ -11,3 +11,8 @@ func TruncateToMidnight(t *time.Time) time.Time {
 func SetYearMonth(t *time.Time, y int, m time.Month) time.Time {
 	return time.Date(y, m, t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond(), t.Location())
 }
+
+func IsWeekend(t *time.Time) bool {
+	weekday := t.Weekday()
+	return weekday == time.Saturday || weekday == time.Sunday
+}
