@@ -1,5 +1,7 @@
 # 🤖 `robo-clavius`
 
+![Go](https://github.com/hitecherik/robo-clavius/workflows/Go/badge.svg?branch=master)
+
 Monzo's savings pots are great, but you can't schedule withdrawals very effectively: what date should you schedule your monthly withdrawal if you want your money available on the day of a monthly bill?
 
 `robo-clavius` understands UK bank holidays and weekends and uses IFTTT webhooks to withdraw your money on the right day.
