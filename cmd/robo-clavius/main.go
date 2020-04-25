@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	opts, dryrun := options.GetOptions()
+	clean, opts, dryrun := options.GetOptions()
 	checker, err := cacher.CacheOrFetch(opts.CacheFile, !dryrun)
 
 	if err != nil {
@@ -24,7 +24,7 @@ func main() {
 
 	for _, job := range jobs {
 		if dryrun {
-			fmt.Printf("Would have triggered %v\n", job.String())
+			fmt.Printf("Would have triggered %v\n", job)
 			continue
 		}
 
@@ -33,6 +33,16 @@ func main() {
 			errors = errors + 1
 			defer os.Exit(errors)
 			os.Stderr.WriteString(fmt.Sprintln(err))
+		}
+	}
+
+	if clean && errors == 0 {
+		opts.Clean()
+
+		if dryrun {
+			fmt.Printf("Would have saved config %v\n", opts)
+		} else {
+			opts.Save()
 		}
 	}
 }

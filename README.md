@@ -17,6 +17,8 @@ Monzo's savings pots are great, but you can't schedule withdrawals very effectiv
 
 ```
 Usage of ./robo-clavius:
+  -clean
+        remove old jobs from the yaml file on completion
   -config value
         the path to the yaml config file
   -dryrun

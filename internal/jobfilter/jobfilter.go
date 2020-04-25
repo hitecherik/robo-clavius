@@ -14,17 +14,17 @@ func Filter(jobs []options.Job, checker *ukbankholiday.UkBankHoliday) []*options
 	today = dateutil.TruncateToMidnight(&today)
 
 	for _, job := range jobs {
-		if job.Monthly && !today.Before(job.Date) {
-			date := dateutil.SetYearMonth(&job.Date, today.Year(), today.Month())
+		if job.Monthly && !today.Before(job.Date.Time) {
+			date := dateutil.SetYearMonth(&job.Date.Time, today.Year(), today.Month())
 
 			if !today.Before(date) {
 				date = date.AddDate(0, 1, 0)
 			}
 
-			job.Date = date
+			job.Date = options.JobDate{Time: date}
 		}
 
-		if !today.Before(job.Date) {
+		if !today.Before(job.Date.Time) {
 			continue
 		}
 
