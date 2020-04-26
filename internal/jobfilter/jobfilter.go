@@ -13,7 +13,9 @@ func Filter(jobs []options.Job, checker *ukbankholiday.UkBankHoliday) []*options
 	today := time.Now()
 	today = dateutil.TruncateToMidnight(&today)
 
-	for _, job := range jobs {
+	for i := range jobs {
+		job := &jobs[i]
+
 		if job.Monthly && !today.Before(job.Date.Time) {
 			date := dateutil.SetYearMonth(&job.Date.Time, today.Year(), today.Month())
 
@@ -30,14 +32,14 @@ func Filter(jobs []options.Job, checker *ukbankholiday.UkBankHoliday) []*options
 
 		working := job.Date.AddDate(0, 0, -1)
 
-		for dateutil.IsWeekend(&working) && !checker.Check(&working) {
+		for dateutil.IsWeekend(&working) || checker.Check(&working) {
 			working = working.AddDate(0, 0, -1)
 		}
 
 		working = working.AddDate(0, 0, -1)
 
 		if today.Equal(working) {
-			filtered = append(filtered, &job)
+			filtered = append(filtered, job)
 		}
 	}
 
